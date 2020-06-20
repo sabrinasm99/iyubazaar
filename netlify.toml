@@ -1,0 +1,6 @@
+[[plugins]]
+package = "netlify-plugin-cache-nextjs"
+
+[build]
+  command = "npm run export"
+  publish = "out"
