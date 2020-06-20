@@ -1,4 +1,4 @@
-import Path from 'path';
+// import Path from 'path';
 import Fs from 'fs';
 import Fse from 'fs-extra';
 import Axios from 'axios';
@@ -80,10 +80,7 @@ export async function getStaticProps() {
     return downloadImage(val.image);
   }));
   
-    // products.forEach(async val => {
-    //   await downloadImage(val.image)
-    // })
-    // await downloadImage('https://backend-product-minimarket.herokuapp.com/image/cimory-leci.jpg');
+    
 
     // Check if Image Not Exists
     const herokuImages = [...new Set(products.map(val => val.image.replace('image/', '')))];
@@ -93,17 +90,12 @@ export async function getStaticProps() {
     await Promise.all(files.map(val => {
       return Fse.remove(`./public/${val}`);
     }))
-    // files.forEach(async val => {
-    //   await Fse.remove(`./public/${val}`);
-    // })
-    // console.log(files, herokuImages);
+    
 
     return {
       props: { 
         products: products.map(val => {
-          // console.log(val.image, 'valimage')
           const image = val.image.split('/')[1];
-          // console.log(image, 'imageee')
           return {
             ...val,
             image
