@@ -38,11 +38,11 @@ export default function Home(props) {
 }
 
 export async function getStaticProps() {
-  const res = await fetch("http://localhost:5000/product/get-product");
+  const res = await fetch("https://backend-product-minimarket.herokuapp.com/product/get-product");
   const posts = await res.json();
 
   async function downloadImage (uri) {  
-    const url = `http://localhost:5000/${uri}`;
+    const url = `https://backend-product-minimarket.herokuapp.com/${uri}`;
     // const path = Path.resolve('./')
     const imageName = uri.replace(/.+\/(.+?\.(jpeg|jpg)$)/, '$1');
 
