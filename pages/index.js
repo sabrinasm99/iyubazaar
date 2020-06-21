@@ -1,5 +1,5 @@
 // import Path from 'path';
-import Fs from 'fs';
+// import Fs from 'fs';
 import Fse from 'fs-extra';
 import Axios from 'axios';
 import Head from "next/head";
@@ -38,63 +38,54 @@ export default function Home(props) {
 }
 
 export async function getStaticProps() {
-  const res = await fetch("https://backend-product-minimarket.herokuapp.com/product/get-product");
-  const products = await res.json();
+  const res = await fetch("http://localhost:5000/product/get-product");
+  const posts = await res.json();
 
+  async function downloadImage (uri) {  
+    const url = `http://localhost:5000/${uri}`;
+    // const path = Path.resolve('./')
+    const imageName = uri.replace(/.+\/(.+?\.(jpeg|jpg)$)/, '$1');
 
-  async function downloadImage(uri){
-    console.log(uri, 'uri')
-    const url = `http://backend-product-minimarket.herokuapp.com/${uri}`;
-    const urlSplit = url.split('/');
-    // console.log(urlSplit, 'urlsplit')
-    const imageName = urlSplit[urlSplit.length - 1];
-    console.log(imageName, 'imagename')
-
-    const exists = await new Promise((resolve) => {
-      Fs.access(`./public/${imageName}`, (err) => {
-        if (err) resolve(0);
-        else resolve(1);
-      });
-    });
-    console.log(exists);
+    const exists = await new Promise(resolve => Fse.access(`./public/${imageName}`, err => {
+      if (err) resolve(0);
+      else resolve(1);
+    }));
 
     if (exists) return;
     
-    // const path = Path.resolve('', 'images', 'code.jpg')
-    const writer = Fs.createWriteStream(`./public/${imageName}`);
 
-  const response = await Axios({
-    url,
-    method: 'GET',
-    responseType: 'stream'
-  })
 
-  response.data.pipe(writer)
-
-  return new Promise((resolve, reject) => {
+    const writer = Fse.createWriteStream(`./public/${imageName}`);
+  
+    const response = await Axios({
+      url,
+      method: 'GET',
+      responseType: 'stream'
+    })
+    
+    // console.log(response.data)
+    response.data.pipe(writer);
+    return new Promise((resolve, reject) => {
       writer.on('finish', resolve)
       writer.on('error', reject)
     })
   }
-  await Promise.all(products.map(val => {
+ 
+  await Promise.all(posts.map(val => {
     return downloadImage(val.image);
   }));
   
-    
+  const cdnImages = posts.map(val => val.image.replace(/.+\/(.+?\.(jpeg|jpg)$)/, '$1'));
+  const file = (await Fse.readdir('./public')).filter(val => /\.(jpeg|jpg)$/.test(val) && !cdnImages.includes(val));
 
-    // Check if Image Not Exists
-    const herokuImages = [...new Set(products.map(val => val.image.replace('image/', '')))];
-    let files = await Fse.readdir('./public');
-    files = files.filter(val => /jpg$/.test(val) && !herokuImages.includes(val));
-    
-    await Promise.all(files.map(val => {
-      return Fse.remove(`./public/${val}`);
-    }))
-    
+  await Promise.all(file.map(val => {
+    return Fse.remove(`./public/${val}`);
+  }));
+ 
 
     return {
       props: { 
-        products: products.map(val => {
+        products: posts.map(val => {
           const image = val.image.split('/')[1];
           return {
             ...val,
